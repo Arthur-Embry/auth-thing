@@ -209,3 +209,6 @@ const AuthComponent = ({ pb, children }) => {
         setIsVerified(pb.authStore.model?.verified);
     }} pb={pb} />;
 };
+
+// At the end of authenticator.jsx
+window.AuthComponent = AuthComponent;
