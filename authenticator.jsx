@@ -201,7 +201,7 @@ const AuthComponent = ({ pb, children }) => {
     };
 
     if (isAuthenticated && isVerified) {
-        return React.cloneElement(children, { onSignOut: handleSignOut, user: pb.authStore.model });
+        return React.cloneElement(children, { onSignOut: handleSignOut, user: pb.authStore.model, pb: pb});
     }
 
     return <__AuthPage__ onAuth={() => {
