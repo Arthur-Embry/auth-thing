@@ -261,6 +261,6 @@ const AuthComponent = ({ children }) => {
         setIsVerified(pb.authStore.model?.verified);
     }} pb={pb} />;
 };
-
+// Test ping
 // At the end of authenticator.jsx
 window.AuthComponent = AuthComponent;
