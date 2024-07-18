@@ -194,7 +194,9 @@ const AuthComponent = ({ children }) => {
         script.src = 'https://unpkg.com/pocketbase@0.21.3/dist/pocketbase.umd.js';
         script.async = true;
         script.onload = () => {
-            const pocketbase = new PocketBase('http://127.0.0.1:8090');
+            // Use the current origin as the base URL for PocketBase
+            const baseUrl = window.location.origin;
+            const pocketbase = new PocketBase(baseUrl);
             setPb(pocketbase);
             setIsAuthenticated(pocketbase.authStore.isValid);
             setIsVerified(pocketbase.authStore.model?.verified);
@@ -224,7 +226,15 @@ const AuthComponent = ({ children }) => {
     };
 
     if (!pb) {
-        return <div>Loading...</div>;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center">
+                    <i className="fas fa-spinner fa-spin text-6xl text-blue-500 mb-4"></i>
+                    <h2 className="text-2xl font-semibold text-gray-800">Loading</h2>
+                    <p className="text-gray-600 mt-2">Please wait while we set things up...</p>
+                </div>
+            </div>
+        );
     }
 
     if (isAuthenticated && isVerified) {
