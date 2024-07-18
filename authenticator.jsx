@@ -183,25 +183,67 @@ const __AuthPage__ = ({ onAuth, pb }) => {
 };
 
 // Main AuthComponent
-const AuthComponent = ({ pb, children }) => {
-    const [isAuthenticated, setIsAuthenticated] = React.useState(pb.authStore.isValid);
-    const [isVerified, setIsVerified] = React.useState(pb.authStore.model?.verified);
+const AuthComponent = ({ children }) => {
+    const [pb, setPb] = React.useState(null);
+    const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+    const [isVerified, setIsVerified] = React.useState(false);
 
     React.useEffect(() => {
-        return pb.authStore.onChange((token, model) => {
-            setIsAuthenticated(pb.authStore.isValid);
-            setIsVerified(model?.verified);
-        });
-    }, [pb.authStore]);
+        // Load PocketBase from CDN
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/pocketbase@0.21.3/dist/pocketbase.umd.js';
+        script.async = true;
+        script.onload = () => {
+            const pocketbase = new PocketBase('http://127.0.0.1:8090');
+            setPb(pocketbase);
+            setIsAuthenticated(pocketbase.authStore.isValid);
+            setIsVerified(pocketbase.authStore.model?.verified);
+        };
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
+    React.useEffect(() => {
+        if (pb) {
+            return pb.authStore.onChange((token, model) => {
+                setIsAuthenticated(pb.authStore.isValid);
+                setIsVerified(model?.verified);
+            });
+        }
+    }, [pb]);
 
     const handleSignOut = async () => {
-        pb.authStore.clear();
-        setIsAuthenticated(false);
-        setIsVerified(false);
+        if (pb) {
+            pb.authStore.clear();
+            setIsAuthenticated(false);
+            setIsVerified(false);
+        }
     };
 
+    if (!pb) {
+        return <div>Loading...</div>;
+    }
+
     if (isAuthenticated && isVerified) {
-        return React.cloneElement(children, { onSignOut: handleSignOut, user: pb.authStore.model, pb: pb});
+        const childProps = {};
+        if (React.isValidElement(children)) {
+            if (!children.props.hasOwnProperty('onSignOut')) {
+                console.warn('Child component is missing onSignOut prop');
+                childProps.onSignOut = handleSignOut;
+            }
+            if (!children.props.hasOwnProperty('user')) {
+                console.warn('Child component is missing user prop');
+                childProps.user = pb.authStore.model;
+            }
+            if (!children.props.hasOwnProperty('pb')) {
+                console.warn('Child component is missing pb prop');
+                childProps.pb = pb;
+            }
+        }
+        return React.cloneElement(children, childProps);
     }
 
     return <__AuthPage__ onAuth={() => {
